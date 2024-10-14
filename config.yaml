@@ -1,0 +1,6 @@
+
+DISCORD_TOKEN: ''
+DISCORD_SERVER: ''
+port: 8180
+url: http://localhost
+endpoint: /tale
