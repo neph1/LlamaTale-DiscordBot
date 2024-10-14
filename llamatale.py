@@ -1,3 +1,4 @@
+import asyncio
 from extension import ExtensionInterface
 import threading
 import requests
@@ -37,12 +38,6 @@ class LlamaTaleInterface(ExtensionInterface):
             print(f"Error: {response.status_code}")
             return
         return
-
-    def modify_prompt_for_llm(self, prompt: str, results: str, user: str):
-        return results
-    
-    def modify_response_for_user(self, results, user):
-        return results
 
     def _start_sse_listener(self):
         self.sse_thread = threading.Thread(target=self._listen_to_sse)

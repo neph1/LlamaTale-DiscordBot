@@ -1,16 +1,18 @@
+import asyncio
 import discord
 import yaml
 
 from bot_utils import format_text
-from llamatale import LLamaTaleInterface
+from llamatale import LlamaTaleInterface
 
 
 class DiscordBot(discord.Client):
 
     def __init__(self, intents, config):
         super().__init__(intents=intents)
+        self.channel = None
+        self.llama_tale = LlamaTaleInterface(config=config)
         
-        self.llama_tale = LLamaTaleInterface(config=config)
 
     async def on_ready(self):
         print(f'{self.user} has connected to Discord!')
@@ -23,28 +25,29 @@ class DiscordBot(discord.Client):
             return
 
         if message.channel.type == discord.ChannelType.private:
-            self.channel = message.channel
-
             if message.content == 'ping':
                 await message.channel.send('pong')
-            elif message.content == 'start':
+            elif not self.channel and message.content == 'start':
                 self.channel = message.channel
-                self.llama_tale.start_sse_listener()
+                self.llama_tale.set_push_method(self.push)
+                return
 
             prompt = message.content
             response = self.llama_tale.call(prompt=prompt)
 
             if response:
                 self._output(response, message)
-            else:
-                print('Something went wrong. No response to send')
 
     def push(self, server_message, image, caption):
-        self._output(server_message, self.channel)
+        if not self.channel:
+            print('No channel to send message to.')
+            return
+        print(server_message, image, caption)
+        client.loop.create_task(self._output(server_message, self.channel))
         if image:
-            self._send_image(image, caption, self.channel)
+            client.loop.create_task(self._send_image(image, caption, self.channel))
 
-    async def _output(self, server_message, channel: discord.Channel):
+    async def _output(self, server_message, channel: discord.GroupChannel):
         response_lines = server_message.split('\n\n')
         output = ''
         for line in response_lines:
@@ -56,9 +59,12 @@ class DiscordBot(discord.Client):
         if output:
             await channel.send(format_text(output))
 
-    async def _send_image(self, image_path, caption, channel: discord.Channel):
-        with open(image_path, "rb") as image_file:
-            await channel.send(file=discord.File(image_file), content=caption)
+    async def _send_image(self, image_path, caption, channel: discord.GroupChannel):
+        try:
+            with open(image_path, "rb") as image_file:
+                await channel.send(file=discord.File(image_file), content=caption)
+        except Exception as e:
+            print(f"Error: {e}")
 
 intents = discord.Intents.default()
 

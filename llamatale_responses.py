@@ -26,6 +26,9 @@ class TextEvent(ServerSentEvent):
         if dialogue_separator in self.text:
             self.speaker, self.text = self.text.split(dialogue_separator)
             self.speaker_image = find_image(self.speaker.lower().replace(' ', '_'))
+        else:
+            self.speaker = None
+            self.speaker_image = None
         self.text = re.sub('<[^<]+?>', '', self.text)
 
 
