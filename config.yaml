@@ -4,3 +4,4 @@ DISCORD_SERVER: ''
 port: 8180
 url: http://localhost
 endpoint: /tale
+llama_tale_paths: '' # path to LlamaTale

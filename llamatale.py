@@ -5,6 +5,7 @@ import requests
 import sseclient
 
 from llamatale_responses import TextEvent
+import web_utils
 
 
 class LlamaTaleInterface(ExtensionInterface):
@@ -19,7 +20,10 @@ class LlamaTaleInterface(ExtensionInterface):
         self.timeout = self.config.get('timeout', 10)
         self.game_state = None
         self.last_location = None
-        self.resources_path = f"{self.host}:{self.port}{endpoint}/static/"
+        if config.get('llama_tale_path', None):
+            self.resources_path = config['llama_tale_path']
+        else:
+            self.resources_path = f"{self.host}:{self.port}{endpoint}/static/resources/"
         
 
     def check_for_trigger(self, prompt: str) -> bool:
@@ -66,17 +70,17 @@ class LlamaTaleInterface(ExtensionInterface):
             print(f"Error: {e}")
 
     def _parse_event(self, event: sseclient.Event):
-        print(f"Received event: {event.data}")
         if event.event == "text":
             response = TextEvent(event)
             image = None
             caption = None
             if response.location != self.last_location:
                 self.last_location = response.location
-                image = self.resources_path + response.location_image
+                image = web_utils.find_image(response.location_image, self.resources_path)
                 caption = response.location
             elif response.speaker:
-                image = self.resources_path + response.speaker_image
+                if response.speaker_image:
+                    image = web_utils.find_image(response.speaker_image, self.resources_path)
                 caption = response.speaker
             if self.push:
                 self.push(response.text, image, caption)

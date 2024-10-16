@@ -12,6 +12,9 @@ class DiscordBot(discord.Client):
         super().__init__(intents=intents)
         self.channel = None
         self.llama_tale = LlamaTaleInterface(config=config)
+        self.last_message = None
+        self.last_image = None
+        self.last_caption = None
         
 
     async def on_ready(self):
@@ -31,6 +34,11 @@ class DiscordBot(discord.Client):
                 self.channel = message.channel
                 self.llama_tale.set_push_method(self.push)
                 return
+            elif message.content == 'remind me':
+                self.push(self.last_message, self.last_image, self.last_caption)
+                return
+            elif message.content == 'help':
+                await message.channel.send('Commands: start (start listening to LlamaTale), remind me (show last message), help (show this message)')
 
             prompt = message.content
             response = self.llama_tale.call(prompt=prompt)
@@ -42,10 +50,12 @@ class DiscordBot(discord.Client):
         if not self.channel:
             print('No channel to send message to.')
             return
-        print(server_message, image, caption)
-        client.loop.create_task(self._output(server_message, self.channel))
         if image:
             client.loop.create_task(self._send_image(image, caption, self.channel))
+        client.loop.create_task(self._output(server_message, self.channel))
+        self.last_message = server_message
+        self.last_image = image
+        self.last_caption = caption
 
     async def _output(self, server_message, channel: discord.GroupChannel):
         response_lines = server_message.split('\n\n')
@@ -61,8 +71,13 @@ class DiscordBot(discord.Client):
 
     async def _send_image(self, image_path, caption, channel: discord.GroupChannel):
         try:
-            with open(image_path, "rb") as image_file:
-                await channel.send(file=discord.File(image_file), content=caption)
+            embed = discord.Embed(title=caption)
+            embed.set_image(url=f'attachment://{image_path}')
+            if image_path.startswith('http'):
+                await channel.send(embed=embed)
+            else:
+                file = discord.File(image_path)
+                await channel.send(file = file, embed=embed)
         except Exception as e:
             print(f"Error: {e}")
 
