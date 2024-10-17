@@ -22,5 +22,3 @@ You will need to set up a discord app/bot. Sadly, it's not possible for me to cl
 You can do the first step in this tutorial for example: https://www.howtogeek.com/364225/how-to-make-your-own-discord-bot/
 
 After that you need to add the bot to your discord server. The same tutorial has a step about this below the coding part.
-
-If you are a sponsor, I can try to help you set things up.
