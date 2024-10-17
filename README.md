@@ -23,4 +23,7 @@ You can do the first step in this tutorial for example: https://www.howtogeek.co
 
 After that you need to add the bot to your discord server. The same tutorial has a step about this below the coding part.
 
+It might be obvious, but from a privacy stand point, this is not an optimal solution, since all data passes through Discords servers.
+
 LlamaTale-DiscordBot is free to use for personal purposes. Contact me if you wish to use it commercially.
+
