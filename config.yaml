@@ -1,7 +1,7 @@
 
-DISCORD_TOKEN: ''
-DISCORD_SERVER: ''
+DISCORD_TOKEN: '' # Your bot token
+DISCORD_SERVER: '' # Server the bot should join
 port: 8180
 url: http://localhost
 endpoint: /tale
-llama_tale_paths: '' # path to LlamaTale
+llama_tale_path: '' # Path to your LlamaTale folder
