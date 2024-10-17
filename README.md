@@ -5,7 +5,7 @@ Steps:
    DISCORD_TOKEN:
    DISCORD_SERVER:
    llama_tale_path: # path to your LlamaTale folder
-3. Run LlamaTale
+3. Run LlamaTale with the `--web` flag (it will open a browser which you can close
 4. Run LlamaTale-DiscordBot with `python discord_bot.py`
 5. The bot will connect to your server.
 6. In a private message, say `start` and it will connect to the LlamaTale server. There is sometimes a delay to the first message, unsure why.
