@@ -13,7 +13,7 @@ Steps:
 8. Type `remind me` to make the bot resend the latest message. Useful if you reconnect, for example
 
 It is currently not possible to restart the story.
-It is only for 'if' mode.
+It is only for 'if' mode. But I think adding MUD support won't be very difficult.
 
 Setting up a Discord bot:
    
