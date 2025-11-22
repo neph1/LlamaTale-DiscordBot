@@ -63,7 +63,7 @@ class TestLlamaTaleResponses:
 
         assert text_event.speaker == "Speaker"
         assert text_event.text == "Hello World"
-        assert text_event.speaker_image == "speaker.png"
+        assert text_event.speaker_image == "speaker"  # Base name without extension
 
     def test_text_event_missing_fields(self):
         event_data = {
