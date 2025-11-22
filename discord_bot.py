@@ -11,19 +11,21 @@ class GameActionView(View):
     """Discord View containing buttons for exits and items."""
     
     def __init__(self, llama_tale: LlamaTaleInterface, exits: list, items: list):
-        super().__init__(timeout=None)  # No timeout for game actions
+        super().__init__(timeout=300)  # 5 minute timeout for game actions
         self.llama_tale = llama_tale
         
         # Add exit buttons (up to 5 to stay within Discord's limits)
-        for exit_name in exits[:5]:
-            button = Button(label=f"🚪 {exit_name}", style=discord.ButtonStyle.primary, custom_id=f"exit_{exit_name}")
+        for i, exit_name in enumerate(exits[:5]):
+            # Use index-based custom_id to avoid issues with special characters
+            button = Button(label=f"🚪 {exit_name}", style=discord.ButtonStyle.primary, custom_id=f"exit_{i}")
             button.callback = self._create_exit_callback(exit_name)
             self.add_item(button)
         
         # Add item buttons (up to remaining slots, max 25 total components)
         remaining_slots = 25 - len(self.children)
-        for item_name in items[:min(remaining_slots, 5)]:
-            button = Button(label=f"📦 {item_name}", style=discord.ButtonStyle.success, custom_id=f"item_{item_name}")
+        for i, item_name in enumerate(items[:min(remaining_slots, 5)]):
+            # Use index-based custom_id to avoid issues with special characters
+            button = Button(label=f"📦 {item_name}", style=discord.ButtonStyle.success, custom_id=f"item_{i}")
             button.callback = self._create_item_callback(item_name)
             self.add_item(button)
     
