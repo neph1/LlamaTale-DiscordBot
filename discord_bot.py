@@ -349,7 +349,7 @@ You can also type commands directly in the chat (e.g., "look", "go north", etc.)
             print(f"Error: {e}")
 
 intents = discord.Intents.default()
-intents.message_content = True
+#intents.message_content = True
 
 with open('config.yaml', 'r') as file:
     config = yaml.safe_load(file)
