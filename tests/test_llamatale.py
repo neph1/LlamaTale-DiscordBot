@@ -7,8 +7,9 @@ import json
 
 class TestLlamaTaleInterface():
     
-    @patch('llamatale_responses.find_image')
-    def test_parse_event(self, mock_find_image):
+    @patch('llamatale.threading.Thread')
+    @patch('web_utils.find_image')
+    def test_parse_event(self, mock_find_image, mock_thread):
         mock_find_image.return_value = 'image_url'
         config = {
             'url': 'http://localhost',
@@ -30,10 +31,16 @@ class TestLlamaTaleInterface():
         # Call the parse_event method
         result = llama_tale_interface._parse_event(event)
 
-        mock_push.assert_called_with('Hello', 'http://localhost:8180/tale/static/image_url', 'Room')
+        mock_push.assert_called()
+        args = mock_push.call_args[0]
+        assert args[0] == 'Hello'  # text
+        assert args[1] == 'image_url'  # image
+        assert args[2] == 'Room'  # caption
+        assert args[3].text == 'Hello'  # event object
 
-    @patch('llamatale_responses.find_image')
-    def test_parse_event_with_speaker(self, mock_find_image):
+    @patch('llamatale.threading.Thread')
+    @patch('web_utils.find_image')
+    def test_parse_event_with_speaker(self, mock_find_image, mock_thread):
         mock_find_image.return_value = 'speaker.png'
         config = {
             'url': 'http://localhost',
@@ -54,4 +61,9 @@ class TestLlamaTaleInterface():
 
         result = llama_tale_interface._parse_event(event)
 
-        mock_push.assert_called_with('Hello', 'http://localhost:8180/tale/static/speaker.png', 'Speaker')
+        mock_push.assert_called()
+        args = mock_push.call_args[0]
+        assert args[0] == 'Hello'  # text
+        assert args[1] == 'speaker.png'  # image
+        assert args[2] == 'Speaker'  # caption
+        assert args[3].speaker == 'Speaker'  # event object

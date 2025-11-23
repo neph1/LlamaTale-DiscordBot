@@ -83,7 +83,7 @@ class LlamaTaleInterface(ExtensionInterface):
                     image = web_utils.find_image(response.speaker_image, self.resources_path)
                 caption = response.speaker
             if self.push:
-                self.push(response.text, image, caption)
+                self.push(response.text, image, caption, response)
 
 
     def set_push_method(self, push: callable):

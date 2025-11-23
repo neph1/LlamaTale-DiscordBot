@@ -63,7 +63,7 @@ class TestLlamaTaleResponses:
 
         assert text_event.speaker == "Speaker"
         assert text_event.text == "Hello World"
-        assert text_event.speaker_image == "speaker.png"
+        assert text_event.speaker_image == "speaker"  # Base name without extension
 
     def test_text_event_missing_fields(self):
         event_data = {
@@ -79,3 +79,38 @@ class TestLlamaTaleResponses:
         assert text_event.items == []
         assert text_event.exits == []
         assert text_event.special == []
+
+    def test_text_event_with_string_npcs_and_items(self):
+        """Test parsing when npcs and items come as comma-separated strings."""
+        event_data = {
+            "text": "You see some creatures and items here.",
+            "location": "Test Room",
+            "npcs": "giant rat,giant rat",
+            "items": "breast_plate,sword",
+            "exits": "north,south,east",
+            "special": ""
+        }
+        event = sseclient.Event(data=json.dumps(event_data))
+        text_event = TextEvent(event)
+
+        assert text_event.text == "You see some creatures and items here."
+        assert text_event.npcs == ["giant rat", "giant rat"]
+        assert text_event.items == ["breast_plate", "sword"]
+        assert text_event.exits == ["north", "south", "east"]
+        assert text_event.special == []
+
+    def test_text_event_with_string_whitespace(self):
+        """Test parsing handles whitespace in comma-separated strings."""
+        event_data = {
+            "text": "Test",
+            "npcs": " giant rat , giant rat ",
+            "items": " breast_plate , sword ",
+            "exits": " north , south ",
+        }
+        event = sseclient.Event(data=json.dumps(event_data))
+        text_event = TextEvent(event)
+
+        # Whitespace should be stripped
+        assert text_event.npcs == ["giant rat", "giant rat"]
+        assert text_event.items == ["breast_plate", "sword"]
+        assert text_event.exits == ["north", "south"]
