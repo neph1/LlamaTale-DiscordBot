@@ -9,8 +9,40 @@ Steps:
 4. Run LlamaTale-DiscordBot with `python discord_bot.py`
 5. The bot will connect to your server.
 6. In a private message, say `start` and it will connect to the LlamaTale server. There is sometimes a delay to the first message, unsure why.
-7. Type commands like you would when normally playing LlamaTale.
+7. Type commands like you would when normally playing LlamaTale, OR use slash commands (see below).
 8. Type `remind me` to make the bot resend the latest message. Useful if you reconnect, for example
+
+## Slash Commands
+
+The bot supports slash commands for quick access to common game actions:
+
+**Movement:**
+- `/north`, `/south`, `/east`, `/west` - Move in cardinal directions
+
+**Actions:**
+- `/look` - Look around your current location
+- `/take <item>` - Take an item
+- `/drop <item>` - Drop an item
+- `/examine <target>` - Examine something
+- `/inventory` - Check your inventory
+
+**Combat:**
+- `/attack <target>` - Attack a target
+- `/loot <target>` - Loot a target or container
+
+**Equipment:**
+- `/wear <item>` - Wear an item
+- `/wield <weapon>` - Wield a weapon
+
+**Interaction:**
+- `/say <message>` - Say something
+- `/give <item> <target>` - Give an item to someone
+- `/use <item> [target]` - Use an item
+- `/open <target>` - Open a door or container
+- `/close <target>` - Close a door or container
+- `/help` - Show available commands
+
+You can also type commands directly in the chat (e.g., "look", "go north", etc.)
 
 It is currently not possible to restart the story.
 It is only for 'if' mode. But I think adding MUD support won't be very difficult.
