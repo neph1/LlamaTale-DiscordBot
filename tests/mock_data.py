@@ -3,9 +3,14 @@ Mock data examples for testing Discord bot with embeds and buttons.
 
 This file contains example event data that the LlamaTale server might send,
 demonstrating the expanded interface with exits, items, and NPCs.
+
+NOTE: The server can send npcs, items, and exits in two formats:
+1. As lists: ["item1", "item2"]
+2. As comma-separated strings: "item1,item2"
+The parser handles both formats automatically.
 """
 
-# Example 1: A room with exits and items
+# Example 1: A room with exits and items (list format)
 room_with_exits_and_items = {
     "text": "You are in a cozy tavern. The fireplace crackles warmly, and the smell of ale fills the air.",
     "location": "The Prancing Pony Tavern",
@@ -69,6 +74,17 @@ combat_scene = {
     "items": ["Rock", "Broken Sword"],
     "exits": ["north", "south"],
     "special": ["combat"]
+}
+
+# Example 7: String format (as the server actually sends)
+string_format_example = {
+    "text": "You see some creatures and items here.",
+    "location": "Test Room",
+    "location_image": "test_room",
+    "npcs": "giant rat,giant rat",
+    "items": "breast_plate,sword",
+    "exits": "north,south,east",
+    "special": ""
 }
 
 # Usage example for testing:
