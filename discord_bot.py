@@ -1,5 +1,6 @@
 import asyncio
 import discord
+from discord import app_commands
 from discord.ui import Button, View
 import yaml
 
@@ -48,16 +49,228 @@ class DiscordBot(discord.Client):
 
     def __init__(self, intents, config):
         super().__init__(intents=intents)
+        self.tree = app_commands.CommandTree(self)
         self.channel = None
         self.llama_tale = LlamaTaleInterface(config=config)
         self.last_message = None
         self.last_image = None
         self.last_caption = None
         self.last_event = None
+        self._setup_commands()
         
 
     async def on_ready(self):
         print(f'{self.user} has connected to Discord!')
+        # Sync slash commands with Discord
+        try:
+            synced = await self.tree.sync()
+            print(f"Synced {len(synced)} command(s)")
+        except Exception as e:
+            print(f"Failed to sync commands: {e}")
+
+    def _setup_commands(self):
+        """Set up all slash commands for the bot."""
+        
+        @self.tree.command(name="look", description="Look around your current location")
+        async def look(interaction: discord.Interaction):
+            """Look around the current location."""
+            if not self.channel:
+                await interaction.response.send_message("Please start the game first with 'start' in DM.", ephemeral=True)
+                return
+            await interaction.response.send_message("Looking around...", ephemeral=True)
+            self.llama_tale.call("look")
+        
+        @self.tree.command(name="say", description="Say something in the game")
+        async def say(interaction: discord.Interaction, message: str):
+            """Say something in the game."""
+            if not self.channel:
+                await interaction.response.send_message("Please start the game first with 'start' in DM.", ephemeral=True)
+                return
+            await interaction.response.send_message(f"Saying: {message}", ephemeral=True)
+            self.llama_tale.call(f"say {message}")
+        
+        @self.tree.command(name="take", description="Take an item")
+        async def take(interaction: discord.Interaction, item: str):
+            """Take an item from the current location."""
+            if not self.channel:
+                await interaction.response.send_message("Please start the game first with 'start' in DM.", ephemeral=True)
+                return
+            await interaction.response.send_message(f"Taking: {item}", ephemeral=True)
+            self.llama_tale.call(f"take {item}")
+        
+        @self.tree.command(name="attack", description="Attack a target")
+        async def attack(interaction: discord.Interaction, target: str):
+            """Attack a target."""
+            if not self.channel:
+                await interaction.response.send_message("Please start the game first with 'start' in DM.", ephemeral=True)
+                return
+            await interaction.response.send_message(f"Attacking: {target}", ephemeral=True)
+            self.llama_tale.call(f"attack {target}")
+        
+        @self.tree.command(name="north", description="Go north")
+        async def north(interaction: discord.Interaction):
+            """Move north."""
+            if not self.channel:
+                await interaction.response.send_message("Please start the game first with 'start' in DM.", ephemeral=True)
+                return
+            await interaction.response.send_message("Moving north...", ephemeral=True)
+            self.llama_tale.call("north")
+        
+        @self.tree.command(name="south", description="Go south")
+        async def south(interaction: discord.Interaction):
+            """Move south."""
+            if not self.channel:
+                await interaction.response.send_message("Please start the game first with 'start' in DM.", ephemeral=True)
+                return
+            await interaction.response.send_message("Moving south...", ephemeral=True)
+            self.llama_tale.call("south")
+        
+        @self.tree.command(name="east", description="Go east")
+        async def east(interaction: discord.Interaction):
+            """Move east."""
+            if not self.channel:
+                await interaction.response.send_message("Please start the game first with 'start' in DM.", ephemeral=True)
+                return
+            await interaction.response.send_message("Moving east...", ephemeral=True)
+            self.llama_tale.call("east")
+        
+        @self.tree.command(name="west", description="Go west")
+        async def west(interaction: discord.Interaction):
+            """Move west."""
+            if not self.channel:
+                await interaction.response.send_message("Please start the game first with 'start' in DM.", ephemeral=True)
+                return
+            await interaction.response.send_message("Moving west...", ephemeral=True)
+            self.llama_tale.call("west")
+        
+        @self.tree.command(name="loot", description="Loot a target or container")
+        async def loot(interaction: discord.Interaction, target: str):
+            """Loot a target or container."""
+            if not self.channel:
+                await interaction.response.send_message("Please start the game first with 'start' in DM.", ephemeral=True)
+                return
+            await interaction.response.send_message(f"Looting: {target}", ephemeral=True)
+            self.llama_tale.call(f"loot {target}")
+        
+        @self.tree.command(name="wear", description="Wear an item")
+        async def wear(interaction: discord.Interaction, item: str):
+            """Wear an item."""
+            if not self.channel:
+                await interaction.response.send_message("Please start the game first with 'start' in DM.", ephemeral=True)
+                return
+            await interaction.response.send_message(f"Wearing: {item}", ephemeral=True)
+            self.llama_tale.call(f"wear {item}")
+        
+        @self.tree.command(name="wield", description="Wield a weapon")
+        async def wield(interaction: discord.Interaction, weapon: str):
+            """Wield a weapon."""
+            if not self.channel:
+                await interaction.response.send_message("Please start the game first with 'start' in DM.", ephemeral=True)
+                return
+            await interaction.response.send_message(f"Wielding: {weapon}", ephemeral=True)
+            self.llama_tale.call(f"wield {weapon}")
+        
+        @self.tree.command(name="drop", description="Drop an item")
+        async def drop(interaction: discord.Interaction, item: str):
+            """Drop an item from your inventory."""
+            if not self.channel:
+                await interaction.response.send_message("Please start the game first with 'start' in DM.", ephemeral=True)
+                return
+            await interaction.response.send_message(f"Dropping: {item}", ephemeral=True)
+            self.llama_tale.call(f"drop {item}")
+        
+        @self.tree.command(name="examine", description="Examine an object or creature")
+        async def examine(interaction: discord.Interaction, target: str):
+            """Examine an object or creature."""
+            if not self.channel:
+                await interaction.response.send_message("Please start the game first with 'start' in DM.", ephemeral=True)
+                return
+            await interaction.response.send_message(f"Examining: {target}", ephemeral=True)
+            self.llama_tale.call(f"examine {target}")
+        
+        @self.tree.command(name="open", description="Open a door or container")
+        async def open_cmd(interaction: discord.Interaction, target: str):
+            """Open a door or container."""
+            if not self.channel:
+                await interaction.response.send_message("Please start the game first with 'start' in DM.", ephemeral=True)
+                return
+            await interaction.response.send_message(f"Opening: {target}", ephemeral=True)
+            self.llama_tale.call(f"open {target}")
+        
+        @self.tree.command(name="close", description="Close a door or container")
+        async def close(interaction: discord.Interaction, target: str):
+            """Close a door or container."""
+            if not self.channel:
+                await interaction.response.send_message("Please start the game first with 'start' in DM.", ephemeral=True)
+                return
+            await interaction.response.send_message(f"Closing: {target}", ephemeral=True)
+            self.llama_tale.call(f"close {target}")
+        
+        @self.tree.command(name="use", description="Use an item")
+        async def use(interaction: discord.Interaction, item: str, target: str = ""):
+            """Use an item, optionally on a target."""
+            if not self.channel:
+                await interaction.response.send_message("Please start the game first with 'start' in DM.", ephemeral=True)
+                return
+            if target:
+                await interaction.response.send_message(f"Using {item} on {target}", ephemeral=True)
+                self.llama_tale.call(f"use {item} {target}")
+            else:
+                await interaction.response.send_message(f"Using: {item}", ephemeral=True)
+                self.llama_tale.call(f"use {item}")
+        
+        @self.tree.command(name="inventory", description="Check your inventory")
+        async def inventory(interaction: discord.Interaction):
+            """Check your inventory."""
+            if not self.channel:
+                await interaction.response.send_message("Please start the game first with 'start' in DM.", ephemeral=True)
+                return
+            await interaction.response.send_message("Checking inventory...", ephemeral=True)
+            self.llama_tale.call("inventory")
+        
+        @self.tree.command(name="help", description="Show available commands")
+        async def help_cmd(interaction: discord.Interaction):
+            """Show available commands."""
+            help_text = """
+**LlamaTale Discord Bot Commands:**
+
+**Movement:**
+• `/north`, `/south`, `/east`, `/west` - Move in cardinal directions
+
+**Actions:**
+• `/look` - Look around your current location
+• `/take <item>` - Take an item
+• `/drop <item>` - Drop an item
+• `/examine <target>` - Examine something
+• `/inventory` - Check your inventory
+
+**Combat:**
+• `/attack <target>` - Attack a target
+• `/loot <target>` - Loot a target or container
+
+**Equipment:**
+• `/wear <item>` - Wear an item
+• `/wield <weapon>` - Wield a weapon
+
+**Interaction:**
+• `/say <message>` - Say something
+• `/give <item> <target>` - Give an item to someone
+• `/use <item> [target]` - Use an item
+• `/open <target>` - Open a door or container
+• `/close <target>` - Close a door or container
+
+You can also type commands directly in the chat (e.g., "look", "go north", etc.)
+            """
+            await interaction.response.send_message(help_text, ephemeral=True)
+        
+        @self.tree.command(name="give", description="Give an item to someone")
+        async def give(interaction: discord.Interaction, item: str, target: str):
+            """Give an item to a target."""
+            if not self.channel:
+                await interaction.response.send_message("Please start the game first with 'start' in DM.", ephemeral=True)
+                return
+            await interaction.response.send_message(f"Giving {item} to {target}", ephemeral=True)
+            self.llama_tale.call(f"give {item} {target}")
 
     async def on_member_join(self, member: discord.Member):
         pass
@@ -147,6 +360,7 @@ class DiscordBot(discord.Client):
             print(f"Error: {e}")
 
 intents = discord.Intents.default()
+intents.message_content = True
 
 with open('config.yaml', 'r') as file:
     config = yaml.safe_load(file)
