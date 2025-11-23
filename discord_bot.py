@@ -68,20 +68,20 @@ class DiscordBot(discord.Client):
         except Exception as e:
             print(f"Failed to sync commands: {e}")
 
+    async def _check_channel(self, interaction: discord.Interaction) -> bool:
+        """Check if channel is set and respond with error if not."""
+        if not self.channel:
+            await interaction.response.send_message("Please start the game first with 'start' in DM.", ephemeral=True)
+            return False
+        return True
+
     def _setup_commands(self):
         """Set up all slash commands for the bot."""
-        
-        async def check_channel(interaction: discord.Interaction) -> bool:
-            """Check if channel is set and respond with error if not."""
-            if not self.channel:
-                await interaction.response.send_message("Please start the game first with 'start' in DM.", ephemeral=True)
-                return False
-            return True
         
         @self.tree.command(name="look", description="Look around your current location")
         async def look(interaction: discord.Interaction):
             """Look around the current location."""
-            if not await check_channel(interaction):
+            if not await self._check_channel(interaction):
                 return
             await interaction.response.send_message("Looking around...", ephemeral=True)
             self.llama_tale.call("look")
@@ -89,7 +89,7 @@ class DiscordBot(discord.Client):
         @self.tree.command(name="say", description="Say something in the game")
         async def say(interaction: discord.Interaction, message: str):
             """Say something in the game."""
-            if not await check_channel(interaction):
+            if not await self._check_channel(interaction):
                 return
             await interaction.response.send_message(f"Saying: {message}", ephemeral=True)
             self.llama_tale.call(f"say {message}")
@@ -97,7 +97,7 @@ class DiscordBot(discord.Client):
         @self.tree.command(name="take", description="Take an item")
         async def take(interaction: discord.Interaction, item: str):
             """Take an item from the current location."""
-            if not await check_channel(interaction):
+            if not await self._check_channel(interaction):
                 return
             await interaction.response.send_message(f"Taking: {item}", ephemeral=True)
             self.llama_tale.call(f"take {item}")
@@ -105,7 +105,7 @@ class DiscordBot(discord.Client):
         @self.tree.command(name="attack", description="Attack a target")
         async def attack(interaction: discord.Interaction, target: str):
             """Attack a target."""
-            if not await check_channel(interaction):
+            if not await self._check_channel(interaction):
                 return
             await interaction.response.send_message(f"Attacking: {target}", ephemeral=True)
             self.llama_tale.call(f"attack {target}")
@@ -113,7 +113,7 @@ class DiscordBot(discord.Client):
         @self.tree.command(name="north", description="Go north")
         async def north(interaction: discord.Interaction):
             """Move north."""
-            if not await check_channel(interaction):
+            if not await self._check_channel(interaction):
                 return
             await interaction.response.send_message("Moving north...", ephemeral=True)
             self.llama_tale.call("north")
@@ -121,7 +121,7 @@ class DiscordBot(discord.Client):
         @self.tree.command(name="south", description="Go south")
         async def south(interaction: discord.Interaction):
             """Move south."""
-            if not await check_channel(interaction):
+            if not await self._check_channel(interaction):
                 return
             await interaction.response.send_message("Moving south...", ephemeral=True)
             self.llama_tale.call("south")
@@ -129,7 +129,7 @@ class DiscordBot(discord.Client):
         @self.tree.command(name="east", description="Go east")
         async def east(interaction: discord.Interaction):
             """Move east."""
-            if not await check_channel(interaction):
+            if not await self._check_channel(interaction):
                 return
             await interaction.response.send_message("Moving east...", ephemeral=True)
             self.llama_tale.call("east")
@@ -137,7 +137,7 @@ class DiscordBot(discord.Client):
         @self.tree.command(name="west", description="Go west")
         async def west(interaction: discord.Interaction):
             """Move west."""
-            if not await check_channel(interaction):
+            if not await self._check_channel(interaction):
                 return
             await interaction.response.send_message("Moving west...", ephemeral=True)
             self.llama_tale.call("west")
@@ -145,7 +145,7 @@ class DiscordBot(discord.Client):
         @self.tree.command(name="loot", description="Loot a target or container")
         async def loot(interaction: discord.Interaction, target: str):
             """Loot a target or container."""
-            if not await check_channel(interaction):
+            if not await self._check_channel(interaction):
                 return
             await interaction.response.send_message(f"Looting: {target}", ephemeral=True)
             self.llama_tale.call(f"loot {target}")
@@ -153,7 +153,7 @@ class DiscordBot(discord.Client):
         @self.tree.command(name="wear", description="Wear an item")
         async def wear(interaction: discord.Interaction, item: str):
             """Wear an item."""
-            if not await check_channel(interaction):
+            if not await self._check_channel(interaction):
                 return
             await interaction.response.send_message(f"Wearing: {item}", ephemeral=True)
             self.llama_tale.call(f"wear {item}")
@@ -161,7 +161,7 @@ class DiscordBot(discord.Client):
         @self.tree.command(name="wield", description="Wield a weapon")
         async def wield(interaction: discord.Interaction, weapon: str):
             """Wield a weapon."""
-            if not await check_channel(interaction):
+            if not await self._check_channel(interaction):
                 return
             await interaction.response.send_message(f"Wielding: {weapon}", ephemeral=True)
             self.llama_tale.call(f"wield {weapon}")
@@ -169,7 +169,7 @@ class DiscordBot(discord.Client):
         @self.tree.command(name="drop", description="Drop an item")
         async def drop(interaction: discord.Interaction, item: str):
             """Drop an item from your inventory."""
-            if not await check_channel(interaction):
+            if not await self._check_channel(interaction):
                 return
             await interaction.response.send_message(f"Dropping: {item}", ephemeral=True)
             self.llama_tale.call(f"drop {item}")
@@ -177,7 +177,7 @@ class DiscordBot(discord.Client):
         @self.tree.command(name="examine", description="Examine an object or creature")
         async def examine(interaction: discord.Interaction, target: str):
             """Examine an object or creature."""
-            if not await check_channel(interaction):
+            if not await self._check_channel(interaction):
                 return
             await interaction.response.send_message(f"Examining: {target}", ephemeral=True)
             self.llama_tale.call(f"examine {target}")
@@ -185,7 +185,7 @@ class DiscordBot(discord.Client):
         @self.tree.command(name="open", description="Open a door or container")
         async def open_cmd(interaction: discord.Interaction, target: str):
             """Open a door or container."""
-            if not await check_channel(interaction):
+            if not await self._check_channel(interaction):
                 return
             await interaction.response.send_message(f"Opening: {target}", ephemeral=True)
             self.llama_tale.call(f"open {target}")
@@ -193,7 +193,7 @@ class DiscordBot(discord.Client):
         @self.tree.command(name="close", description="Close a door or container")
         async def close(interaction: discord.Interaction, target: str):
             """Close a door or container."""
-            if not await check_channel(interaction):
+            if not await self._check_channel(interaction):
                 return
             await interaction.response.send_message(f"Closing: {target}", ephemeral=True)
             self.llama_tale.call(f"close {target}")
@@ -201,7 +201,7 @@ class DiscordBot(discord.Client):
         @self.tree.command(name="use", description="Use an item")
         async def use(interaction: discord.Interaction, item: str, target: str = ""):
             """Use an item, optionally on a target."""
-            if not await check_channel(interaction):
+            if not await self._check_channel(interaction):
                 return
             if target:
                 await interaction.response.send_message(f"Using {item} on {target}", ephemeral=True)
@@ -213,7 +213,7 @@ class DiscordBot(discord.Client):
         @self.tree.command(name="inventory", description="Check your inventory")
         async def inventory(interaction: discord.Interaction):
             """Check your inventory."""
-            if not await check_channel(interaction):
+            if not await self._check_channel(interaction):
                 return
             await interaction.response.send_message("Checking inventory...", ephemeral=True)
             self.llama_tale.call("inventory")
@@ -256,7 +256,7 @@ You can also type commands directly in the chat (e.g., "look", "go north", etc.)
         @self.tree.command(name="give", description="Give an item to someone")
         async def give(interaction: discord.Interaction, item: str, target: str):
             """Give an item to a target."""
-            if not await check_channel(interaction):
+            if not await self._check_channel(interaction):
                 return
             await interaction.response.send_message(f"Giving {item} to {target}", ephemeral=True)
             self.llama_tale.call(f"give {item} {target}")

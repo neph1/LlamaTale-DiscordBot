@@ -107,3 +107,40 @@ class TestSlashCommands:
         interaction.response.send_message.assert_called_once()
         call_args = interaction.response.send_message.call_args
         assert "start the game first" in call_args[0][0].lower()
+    
+    @patch('discord_bot.LlamaTaleInterface')
+    async def test_check_channel_method(self, mock_llama):
+        """Test the _check_channel helper method."""
+        from discord_bot import DiscordBot
+        
+        intents = discord.Intents.default()
+        intents.message_content = True
+        
+        config = {
+            'DISCORD_TOKEN': 'test_token',
+            'DISCORD_SERVER': 'test_server',
+            'url': 'http://localhost',
+            'port': 8180,
+            'endpoint': '/tale'
+        }
+        
+        bot = DiscordBot(intents=intents, config=config)
+        
+        # Mock interaction
+        interaction = MagicMock(spec=discord.Interaction)
+        interaction.response = MagicMock()
+        interaction.response.send_message = AsyncMock()
+        
+        # Test with no channel
+        bot.channel = None
+        result = await bot._check_channel(interaction)
+        assert result is False
+        interaction.response.send_message.assert_called_once()
+        
+        # Test with channel set
+        interaction.response.send_message.reset_mock()
+        bot.channel = MagicMock()
+        result = await bot._check_channel(interaction)
+        assert result is True
+        interaction.response.send_message.assert_not_called()
+
