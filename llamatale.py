@@ -53,18 +53,29 @@ class LlamaTaleInterface(ExtensionInterface):
 
     def _listen_to_ws(self):
         print("Listening to WebSocket events at", self.url)
-        response = requests.get(f"{self.host}:{self.port}/tale/story", stream=True)
         try:
-            # Run the async WebSocket listener in a new event loop
-            asyncio.run(self._ws_client())
+            # Create a new event loop for this thread
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            loop.run_until_complete(self._ws_client())
         except Exception as e:
             print(f"Error: {e}")
+        finally:
+            loop.close()
 
     async def _ws_client(self):
         try:
             async with websockets.connect(self.url) as websocket:
                 async for message in websocket:
                     self._parse_message(message)
+        except websockets.exceptions.ConnectionClosed:
+            print("WebSocket connection closed. Attempting to reconnect...")
+            # Simple reconnection attempt
+            try:
+                await asyncio.sleep(2)
+                await self._ws_client()
+            except Exception as e:
+                print(f"Reconnection failed: {e}")
         except Exception as e:
             print(f"WebSocket error: {e}")
 
