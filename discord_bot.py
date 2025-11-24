@@ -6,6 +6,8 @@ import yaml
 
 from bot_utils import format_text
 from llamatale import LlamaTaleInterface
+from web_utils import find_image
+
 
 
 class GameActionView(View):
@@ -306,21 +308,20 @@ You can also type commands directly in the chat (e.g., "look", "go north", etc.)
         # Detect if we're examining an item or NPC to show its thumbnail
         thumbnail_path = None
         if event and self.last_command and self.last_command.startswith('examine '):
-            target = self.last_command[8:].strip()  # Extract the target from "examine <target>"
+            examine_prefix = 'examine '
+            target = self.last_command[len(examine_prefix):].strip()  # Extract the target from "examine <target>"
             
             # Check if target is an item
             if target in event.items:
                 image_name = event.get_item_image(target)
-                from web_utils import find_image
                 thumbnail_path = find_image(image_name, self.llama_tale.resources_path)
             # Check if target is an NPC
             elif target in event.npcs:
                 image_name = event.get_npc_image(target)
-                from web_utils import find_image
                 thumbnail_path = find_image(image_name, self.llama_tale.resources_path)
         
         # Create an embed if we have structured event data with exits or items
-        if event and (event.exits or event.items or thumbnail_path):
+        if event and (event.exits or event.items or event.npcs):
             embed = discord.Embed(description=format_text(server_message), color=discord.Color.blue())
             
             # Add thumbnail if examining an item or NPC
