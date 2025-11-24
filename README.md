@@ -1,4 +1,9 @@
 This is a server that acts as a relay between a LlamaTale server and a Discord bot. It will send everyting coming from the server to Discord.
+It provides some context related features.
+
+<img width="703" height="633" alt="Screenshot from 2025-11-23 08-12-32" src="https://github.com/user-attachments/assets/cbeda794-d696-4ef3-9c27-2c7140b88c96" />
+
+
 Steps:
 1. Get and run LlamaTale
 2. Configure LlamaTale-DiscordBot
@@ -13,6 +18,9 @@ Steps:
 8. Type `remind me` to make the bot resend the latest message. Useful if you reconnect, for example
 
 ## Slash Commands
+
+<img width="661" height="516" alt="Screenshot from 2025-11-23 19-25-54" src="https://github.com/user-attachments/assets/09a9dfd7-3bef-46c3-bfa4-a66998e11c17" />
+
 
 The bot supports slash commands for quick access to common game actions:
 
@@ -42,7 +50,7 @@ The bot supports slash commands for quick access to common game actions:
 - `/close <target>` - Close a door or container
 - `/help` - Show available commands
 
-You can also type commands directly in the chat (e.g., "look", "go north", etc.)
+You can also type commands directly in the chat (e.g., "look", "north", etc.)
 
 It is currently not possible to restart the story.
 It is only for 'if' mode. But I think adding MUD support won't be very difficult.
