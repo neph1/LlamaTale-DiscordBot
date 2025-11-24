@@ -91,23 +91,21 @@ string_format_example = {
 """
 To test these examples in the actual Discord bot, you would:
 
-1. Mock the SSE event stream from LlamaTale server
-2. Convert the dictionary to JSON and wrap in an sseclient.Event
-3. Pass to the _parse_event method
+1. Mock the WebSocket message stream from LlamaTale server
+2. Convert the dictionary to JSON string
+3. Pass to the _parse_message method
 
 Example test code:
 ```python
 import json
-import sseclient
 from llamatale import LlamaTaleInterface
 
-# Create event from mock data
-event = sseclient.Event(event='text')
-event.data = json.dumps(room_with_exits_and_items)
+# Create WebSocket message from mock data
+message = json.dumps({"event": "text", **room_with_exits_and_items})
 
-# Process the event
+# Process the message
 llama_tale_interface = LlamaTaleInterface(config)
-llama_tale_interface._parse_event(event)
+llama_tale_interface._parse_message(message)
 ```
 
 Expected Discord UI behavior:

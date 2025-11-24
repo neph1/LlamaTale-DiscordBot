@@ -1,7 +1,5 @@
 from unittest.mock import patch, MagicMock
 
-import sseclient
-
 from llamatale import LlamaTaleInterface
 import json
 
@@ -9,7 +7,7 @@ class TestLlamaTaleInterface():
     
     @patch('llamatale.threading.Thread')
     @patch('web_utils.find_image')
-    def test_parse_event(self, mock_find_image, mock_thread):
+    def test_parse_message(self, mock_find_image, mock_thread):
         mock_find_image.return_value = 'image_url'
         config = {
             'url': 'http://localhost',
@@ -24,12 +22,11 @@ class TestLlamaTaleInterface():
 
         llama_tale_interface.set_push_method(mock_push)
 
-        # Create a mock event
-        event = sseclient.Event(event='text')
-        event.data = json.dumps({"text": "Hello", "location": "Room", "location_image": "image_url", "npcs": ["some npc"]})
+        # Create a mock WebSocket message
+        message = json.dumps({"event": "text", "text": "Hello", "location": "Room", "location_image": "image_url", "npcs": ["some npc"]})
 
-        # Call the parse_event method
-        result = llama_tale_interface._parse_event(event)
+        # Call the parse_message method
+        result = llama_tale_interface._parse_message(message)
 
         mock_push.assert_called()
         args = mock_push.call_args[0]
@@ -40,7 +37,7 @@ class TestLlamaTaleInterface():
 
     @patch('llamatale.threading.Thread')
     @patch('web_utils.find_image')
-    def test_parse_event_with_speaker(self, mock_find_image, mock_thread):
+    def test_parse_message_with_speaker(self, mock_find_image, mock_thread):
         mock_find_image.return_value = 'speaker.png'
         config = {
             'url': 'http://localhost',
@@ -56,10 +53,9 @@ class TestLlamaTaleInterface():
         llama_tale_interface.last_location = 'Room'
         llama_tale_interface.set_push_method(mock_push)
 
-        event = sseclient.Event(event='text')
-        event.data = json.dumps({"text": "Speaker <:> Hello", "location": "Room", "location_image": "image_url", "npcs": ["some npc"]})
+        message = json.dumps({"event": "text", "text": "Speaker <:> Hello", "location": "Room", "location_image": "image_url", "npcs": ["some npc"]})
 
-        result = llama_tale_interface._parse_event(event)
+        result = llama_tale_interface._parse_message(message)
 
         mock_push.assert_called()
         args = mock_push.call_args[0]

@@ -1,7 +1,6 @@
 """Tests for Discord embed and button functionality."""
 import json
 from unittest.mock import AsyncMock, MagicMock, patch
-import sseclient
 
 from llamatale_responses import TextEvent
 
@@ -22,8 +21,7 @@ class TestDiscordEmbeds:
             "special": []
         }
         
-        event = sseclient.Event(data=json.dumps(event_data))
-        text_event = TextEvent(event)
+        text_event = TextEvent(event_data)
         
         # Verify the text event has all the data
         assert text_event.text == "You are in a room."
@@ -42,8 +40,7 @@ class TestDiscordEmbeds:
             "npcs": []
         }
         
-        event = sseclient.Event(data=json.dumps(event_data))
-        text_event = TextEvent(event)
+        text_event = TextEvent(event_data)
         
         assert text_event.exits == ["north", "south", "east", "west"]
         assert len(text_event.exits) == 4
@@ -58,8 +55,7 @@ class TestDiscordEmbeds:
             "npcs": []
         }
         
-        event = sseclient.Event(data=json.dumps(event_data))
-        text_event = TextEvent(event)
+        text_event = TextEvent(event_data)
         
         assert text_event.items == ["Gold Coin", "Magic Wand", "Ancient Scroll"]
         assert len(text_event.items) == 3
@@ -74,8 +70,7 @@ class TestDiscordEmbeds:
             "npcs": ["Blacksmith", "Mayor", "Guard Captain"]
         }
         
-        event = sseclient.Event(data=json.dumps(event_data))
-        text_event = TextEvent(event)
+        text_event = TextEvent(event_data)
         
         assert text_event.npcs == ["Blacksmith", "Mayor", "Guard Captain"]
         assert len(text_event.npcs) == 3
@@ -92,8 +87,7 @@ class TestDiscordEmbeds:
             "special": ["throne"]
         }
         
-        event = sseclient.Event(data=json.dumps(event_data))
-        text_event = TextEvent(event)
+        text_event = TextEvent(event_data)
         
         # Verify all fields are accessible for embed creation
         assert text_event.text == "You enter a magnificent hall."

@@ -1,5 +1,4 @@
 import json
-import sseclient
 from llamatale_responses import TextEvent, dialogue_separator
 from unittest.mock import patch
 
@@ -20,8 +19,7 @@ class TestLlamaTaleResponses:
             "exits": ["Exit1", "Exit2"],
             "special": ["Special1"]
         }
-        event = sseclient.Event(data=json.dumps(event_data))
-        text_event = TextEvent(event)
+        text_event = TextEvent(event_data)
 
         assert text_event.text == "Hello World"
         assert text_event.location == "Room 1"
@@ -41,8 +39,7 @@ class TestLlamaTaleResponses:
             "exits": ["Exit1", "Exit2"],
             "special": ["Special1"]
         }
-        event = sseclient.Event(data=json.dumps(event_data))
-        text_event = TextEvent(event)
+        text_event = TextEvent(event_data)
 
         assert text_event.text == "Hello World"
 
@@ -58,8 +55,7 @@ class TestLlamaTaleResponses:
             "exits": ["Exit1", "Exit2"],
             "special": ["Special1"]
         }
-        event = sseclient.Event(data=json.dumps(event_data))
-        text_event = TextEvent(event)
+        text_event = TextEvent(event_data)
 
         assert text_event.speaker == "Speaker"
         assert text_event.text == "Hello World"
@@ -69,8 +65,7 @@ class TestLlamaTaleResponses:
         event_data = {
             "text": "Hello World"
         }
-        event = sseclient.Event(data=json.dumps(event_data))
-        text_event = TextEvent(event)
+        text_event = TextEvent(event_data)
 
         assert text_event.text == "Hello World"
         assert text_event.location is None
@@ -90,8 +85,7 @@ class TestLlamaTaleResponses:
             "exits": "north,south,east",
             "special": ""
         }
-        event = sseclient.Event(data=json.dumps(event_data))
-        text_event = TextEvent(event)
+        text_event = TextEvent(event_data)
 
         assert text_event.text == "You see some creatures and items here."
         assert text_event.npcs == ["giant rat", "giant rat"]
@@ -107,8 +101,7 @@ class TestLlamaTaleResponses:
             "items": " breast_plate , sword ",
             "exits": " north , south ",
         }
-        event = sseclient.Event(data=json.dumps(event_data))
-        text_event = TextEvent(event)
+        text_event = TextEvent(event_data)
 
         # Whitespace should be stripped
         assert text_event.npcs == ["giant rat", "giant rat"]
