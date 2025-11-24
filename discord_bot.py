@@ -56,6 +56,7 @@ class DiscordBot(discord.Client):
         self.last_image = None
         self.last_caption = None
         self.last_event = None
+        self.last_command = None  # Track the last command for context-aware image display
         self._setup_commands()
         
 
@@ -180,6 +181,7 @@ class DiscordBot(discord.Client):
             if not await self._check_channel(interaction):
                 return
             await interaction.response.send_message(f"Examining: {target}", ephemeral=True)
+            self.last_command = f"examine {target}"
             self.llama_tale.call(f"examine {target}")
         
         @self.tree.command(name="open", description="Open a door or container")
@@ -282,6 +284,7 @@ You can also type commands directly in the chat (e.g., "look", "go north", etc.)
                 await message.channel.send('Commands: start (start listening to LlamaTale), remind me (show last message), help (show this message)')
 
             prompt = message.content
+            self.last_command = prompt  # Track the command for context-aware image display
             response = self.llama_tale.call(prompt=prompt)
 
             if response:
@@ -300,9 +303,34 @@ You can also type commands directly in the chat (e.g., "look", "go north", etc.)
         self.last_event = event
 
     async def _output(self, server_message, channel: discord.GroupChannel, event=None):
+        # Detect if we're examining an item or NPC to show its thumbnail
+        thumbnail_path = None
+        if event and self.last_command and self.last_command.startswith('examine '):
+            target = self.last_command[8:].strip()  # Extract the target from "examine <target>"
+            
+            # Check if target is an item
+            if target in event.items:
+                image_name = event.get_item_image(target)
+                from web_utils import find_image
+                thumbnail_path = find_image(image_name, self.llama_tale.resources_path)
+            # Check if target is an NPC
+            elif target in event.npcs:
+                image_name = event.get_npc_image(target)
+                from web_utils import find_image
+                thumbnail_path = find_image(image_name, self.llama_tale.resources_path)
+        
         # Create an embed if we have structured event data with exits or items
-        if event and (event.exits or event.items):
+        if event and (event.exits or event.items or thumbnail_path):
             embed = discord.Embed(description=format_text(server_message), color=discord.Color.blue())
+            
+            # Add thumbnail if examining an item or NPC
+            if thumbnail_path:
+                if thumbnail_path.startswith('http'):
+                    embed.set_thumbnail(url=thumbnail_path)
+                else:
+                    # For local files, we need to handle them differently
+                    # We'll send the image as an attachment and reference it
+                    embed.set_thumbnail(url=f'attachment://{thumbnail_path.split("/")[-1]}')
             
             # Add exits field
             if event.exits:
@@ -322,7 +350,16 @@ You can also type commands directly in the chat (e.g., "look", "go north", etc.)
             # Create view with buttons
             view = GameActionView(self.llama_tale, event.exits, event.items)
             
-            await channel.send(embed=embed, view=view)
+            # Send with thumbnail file if needed
+            if thumbnail_path and not thumbnail_path.startswith('http'):
+                try:
+                    file = discord.File(thumbnail_path)
+                    await channel.send(file=file, embed=embed, view=view)
+                except Exception as e:
+                    print(f"Error sending thumbnail: {e}")
+                    await channel.send(embed=embed, view=view)
+            else:
+                await channel.send(embed=embed, view=view)
         else:
             # Fall back to regular text output
             response_lines = server_message.split('\n\n')

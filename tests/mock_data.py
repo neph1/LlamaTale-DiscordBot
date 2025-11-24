@@ -16,7 +16,9 @@ room_with_exits_and_items = {
     "location": "The Prancing Pony Tavern",
     "location_image": "tavern",
     "npcs": ["Bartender", "Old Man", "Traveling Merchant"],
+    "npc_images": ["bartender_portrait", "old_man_portrait", "merchant_portrait"],
     "items": ["Wooden Mug", "Map", "Rusty Key"],
+    "item_images": ["mug_icon", "map_icon", "key_icon"],
     "exits": ["north", "south", "upstairs"],
     "special": []
 }
@@ -38,7 +40,9 @@ treasure_room = {
     "location": "Secret Treasure Vault",
     "location_image": "treasure_vault",
     "npcs": [],
+    "npc_images": [],
     "items": ["Gold Coins", "Ruby Amulet", "Silver Dagger", "Magic Scroll", "Diamond Ring", "Ancient Crown"],
+    "item_images": ["coins_icon", "amulet_icon", "dagger_icon", "scroll_icon", "ring_icon", "crown_icon"],
     "exits": ["west"],
     "special": ["chest"]
 }
