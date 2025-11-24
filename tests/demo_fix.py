@@ -11,7 +11,6 @@ import json
 import sys
 sys.path.insert(0, '..')
 
-import sseclient
 from llamatale_responses import TextEvent
 
 print("=" * 70)
@@ -29,9 +28,7 @@ event_data = {
     "exits": "north,south,east"
 }
 
-event = sseclient.Event(event='text')
-event.data = json.dumps(event_data)
-text_event = TextEvent(event)
+text_event = TextEvent(event_data)
 
 print(f"Input npcs string: {event_data['npcs']!r}")
 print(f"Parsed npcs:       {text_event.npcs}")
@@ -57,9 +54,7 @@ event_data2 = {
     "exits": ["north", "south", "east"]
 }
 
-event2 = sseclient.Event(event='text')
-event2.data = json.dumps(event_data2)
-text_event2 = TextEvent(event2)
+text_event2 = TextEvent(event_data2)
 
 print(f"Input npcs list: {event_data2['npcs']!r}")
 print(f"Parsed npcs:     {text_event2.npcs}")
@@ -79,9 +74,7 @@ event_data3 = {
     "items": " breast_plate , sword "
 }
 
-event3 = sseclient.Event(event='text')
-event3.data = json.dumps(event_data3)
-text_event3 = TextEvent(event3)
+text_event3 = TextEvent(event_data3)
 
 print(f"Input with spaces: {event_data3['npcs']!r}")
 print(f"Parsed (trimmed):  {text_event3.npcs}")

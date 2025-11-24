@@ -11,7 +11,6 @@ from unittest.mock import MagicMock
 # Add parent directory to path for imports
 sys.path.insert(0, '..')
 
-import sseclient
 from tests.mock_data import (
     room_with_exits_and_items,
     crossroads_location,
@@ -29,12 +28,8 @@ def demonstrate_event_parsing(event_data, description):
     print(f"DEMO: {description}")
     print(f"{'=' * 70}")
     
-    # Create an SSE event from mock data
-    event = sseclient.Event(event='text')
-    event.data = json.dumps(event_data)
-    
-    # Parse the event
-    text_event = TextEvent(event)
+    # Parse the event directly from data (WebSocket format)
+    text_event = TextEvent(event_data)
     
     # Display what would be shown in Discord
     print(f"\n📝 Text Message:")
