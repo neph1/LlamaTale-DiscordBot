@@ -11,11 +11,13 @@ from web_utils import find_image
 
 
 class GameActionView(View):
-    """Discord View containing buttons for exits and items."""
+    """Discord View containing buttons for exits, items, and NPCs."""
     
-    def __init__(self, llama_tale: LlamaTaleInterface, exits: list, items: list):
+    def __init__(self, llama_tale: LlamaTaleInterface, exits: list, items: list, npcs: list = None, event=None):
         super().__init__(timeout=300)  # 5 minute timeout for game actions
         self.llama_tale = llama_tale
+        self.event = event
+        npcs = npcs or []
         
         # Add exit buttons (up to 5 to stay within Discord's limits)
         for i, exit_name in enumerate(exits[:5]):
@@ -27,10 +29,102 @@ class GameActionView(View):
         # Add item buttons (up to remaining slots, max 25 total components)
         remaining_slots = 25 - len(self.children)
         for i, item_name in enumerate(items[:min(remaining_slots, 5)]):
+            # Get custom emoji for item if available from event
+            item_emoji = self._get_item_emoji(item_name)
+            
             # Use index-based custom_id to avoid issues with special characters
-            button = Button(label=f"📦 {item_name}", style=discord.ButtonStyle.success, custom_id=f"item_{i}")
+            button = Button(
+                label=item_name,
+                style=discord.ButtonStyle.success,
+                custom_id=f"item_{i}",
+                emoji=item_emoji
+            )
             button.callback = self._create_item_callback(item_name)
             self.add_item(button)
+        
+        # Add NPC buttons (up to remaining slots)
+        remaining_slots = 25 - len(self.children)
+        for i, npc_name in enumerate(npcs[:min(remaining_slots, 5)]):
+            # Get custom emoji for NPC if available from event
+            npc_emoji = self._get_npc_emoji(npc_name)
+            
+            # Use index-based custom_id to avoid issues with special characters
+            button = Button(
+                label=npc_name,
+                style=discord.ButtonStyle.secondary,
+                custom_id=f"npc_{i}",
+                emoji=npc_emoji
+            )
+            button.callback = self._create_npc_callback(npc_name)
+            self.add_item(button)
+    
+    def _get_item_emoji(self, item_name: str):
+        """Get the emoji for an item button.
+        
+        Returns a custom emoji if available from item_images, otherwise uses default 📦.
+        The item_images can contain:
+        - Discord custom emoji in format <:name:id> or <a:name:id> for animated
+        - Unicode emoji characters
+        - Emoji name that can be looked up
+        """
+        if not self.event:
+            return "📦"
+        
+        # Get the image/emoji reference from the event
+        image_ref = self.event.get_item_image(item_name)
+        
+        return self._parse_emoji(image_ref, "📦")
+    
+    def _get_npc_emoji(self, npc_name: str):
+        """Get the emoji for an NPC button.
+        
+        Returns a custom emoji if available from npc_images, otherwise uses default 👤.
+        """
+        if not self.event:
+            return "👤"
+        
+        # Get the image/emoji reference from the event
+        image_ref = self.event.get_npc_image(npc_name)
+        
+        return self._parse_emoji(image_ref, "👤")
+    
+    def _parse_emoji(self, emoji_ref: str, default: str):
+        """Parse an emoji reference and return a usable emoji.
+        
+        Supports:
+        - Discord custom emoji in format <:name:id> or <a:name:id> for animated
+        - Unicode emoji characters
+        - Falls back to default if not recognized
+        """
+        if not emoji_ref:
+            return default
+        
+        # Check if it's a custom Discord emoji format <:name:id> or <a:name:id>
+        if emoji_ref.startswith('<') and emoji_ref.endswith('>'):
+            try:
+                # Format: <:name:id> or <a:name:id>
+                # For non-animated: <:name:id> splits to ['', 'name', 'id']
+                # For animated: <a:name:id> splits to ['a', 'name', 'id']
+                parts = emoji_ref.strip('<>').split(':')
+                if len(parts) >= 3:
+                    # animated is True only if the first part is exactly 'a'
+                    animated = parts[0] == 'a'
+                    # For non-animated, parts[0] is empty, so name is at index 1
+                    # For animated, parts[0] is 'a', name is still at index 1
+                    name = parts[1]
+                    emoji_id = int(parts[2])
+                    return discord.PartialEmoji(name=name, id=emoji_id, animated=animated)
+            except (ValueError, IndexError):
+                pass
+        
+        # Check if it looks like a Unicode emoji
+        # Unicode emojis are non-ASCII and are typically 1-10 characters
+        # (complex emojis with modifiers/ZWJ can be longer)
+        if not emoji_ref.isascii():
+            return emoji_ref
+        
+        # Default fallback emoji
+        return default
     
     def _create_exit_callback(self, exit_name: str):
         """Create a callback for exit button."""
@@ -44,6 +138,13 @@ class GameActionView(View):
         async def callback(interaction: discord.Interaction):
             await interaction.response.send_message(f"Taking: {item_name}", ephemeral=True)
             self.llama_tale.call(f"take {item_name}")
+        return callback
+    
+    def _create_npc_callback(self, npc_name: str):
+        """Create a callback for NPC button."""
+        async def callback(interaction: discord.Interaction):
+            await interaction.response.send_message(f"Talking to: {npc_name}", ephemeral=True)
+            self.llama_tale.call(f"talk {npc_name}")
         return callback
 
 
@@ -349,7 +450,7 @@ You can also type commands directly in the chat (e.g., "look", "go north", etc.)
                 embed.add_field(name="👥 NPCs", value=npcs_text, inline=False)
             
             # Create view with buttons
-            view = GameActionView(self.llama_tale, event.exits, event.items)
+            view = GameActionView(self.llama_tale, event.exits, event.items, event.npcs, event)
             
             # Send with thumbnail file if needed
             if thumbnail_path and not thumbnail_path.startswith('http'):
