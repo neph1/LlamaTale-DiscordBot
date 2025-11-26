@@ -63,17 +63,17 @@ The bot uses a smart fallback strategy for button emojis:
 ### Button Behavior
 
 **Item buttons:**
-- Display with emoji + item name (e.g., "🗡️ Magic Sword")
+- Display emoji alongside item name (Discord shows emoji before label)
 - Clicking triggers "take [item]" command
 - Green colored (success style)
 
 **NPC buttons:**
-- Display with emoji + NPC name (e.g., "👤 Guard Captain")
+- Display emoji alongside NPC name (Discord shows emoji before label)
 - Clicking triggers "talk [npc]" command
 - Gray colored (secondary style)
 
 **Exit buttons:**
-- Display with 🚪 + direction
+- Display with 🚪 emoji + direction in label
 - Clicking triggers movement command
 - Blue colored (primary style)
 

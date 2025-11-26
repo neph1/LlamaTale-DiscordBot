@@ -103,17 +103,19 @@ class GameActionView(View):
         if emoji_ref.startswith('<') and emoji_ref.endswith('>'):
             try:
                 # Format: <:name:id> or <a:name:id>
-                # For non-animated: <:name:id> splits to ['', 'name', 'id']
-                # For animated: <a:name:id> splits to ['a', 'name', 'id']
+                # For non-animated: <:name:id> strips to ':name:id', splits to ['', 'name', 'id']
+                # For animated: <a:name:id> strips to 'a:name:id', splits to ['a', 'name', 'id']
                 parts = emoji_ref.strip('<>').split(':')
-                if len(parts) >= 3:
+                if len(parts) == 3:
                     # animated is True only if the first part is exactly 'a'
+                    # For non-animated, parts[0] is empty string, so this is False (correct)
+                    # For animated, parts[0] is 'a', so this is True (correct)
                     animated = parts[0] == 'a'
-                    # For non-animated, parts[0] is empty, so name is at index 1
-                    # For animated, parts[0] is 'a', name is still at index 1
                     name = parts[1]
                     emoji_id = int(parts[2])
                     return discord.PartialEmoji(name=name, id=emoji_id, animated=animated)
+            except (ValueError, IndexError):
+                pass
             except (ValueError, IndexError):
                 pass
         
