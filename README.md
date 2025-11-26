@@ -52,6 +52,17 @@ The bot supports slash commands for quick access to common game actions:
 
 You can also type commands directly in the chat (e.g., "look", "north", etc.)
 
+## Features
+
+### Rich Embeds with Icons
+- **Location Images**: Displayed when entering a new location
+- **Speaker Images**: Shown when NPCs speak
+- **Item & NPC Icons**: Thumbnails appear when examining items or NPCs (see [ITEM_NPC_ICONS.md](ITEM_NPC_ICONS.md))
+- **Interactive Buttons**: Quick-action buttons for exits and items
+
+### Item and NPC Icons
+The bot now supports displaying custom icons for items and NPCs. When you examine an item or NPC, a thumbnail icon appears in the embed. The LlamaTale server can optionally send custom icon names, or the bot will derive them from item/NPC names. See [ITEM_NPC_ICONS.md](ITEM_NPC_ICONS.md) for detailed documentation.
+
 It is currently not possible to restart the story.
 It is only for 'if' mode. But I think adding MUD support won't be very difficult.
 

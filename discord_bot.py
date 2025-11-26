@@ -6,14 +6,18 @@ import yaml
 
 from bot_utils import format_text
 from llamatale import LlamaTaleInterface
+from web_utils import find_image
+
 
 
 class GameActionView(View):
-    """Discord View containing buttons for exits and items."""
+    """Discord View containing buttons for exits, items, and NPCs."""
     
-    def __init__(self, llama_tale: LlamaTaleInterface, exits: list, items: list):
+    def __init__(self, llama_tale: LlamaTaleInterface, exits: list, items: list, npcs: list = None, event=None):
         super().__init__(timeout=300)  # 5 minute timeout for game actions
         self.llama_tale = llama_tale
+        self.event = event
+        npcs = npcs or []
         
         # Add exit buttons (up to 5 to stay within Discord's limits)
         for i, exit_name in enumerate(exits[:5]):
@@ -25,10 +29,104 @@ class GameActionView(View):
         # Add item buttons (up to remaining slots, max 25 total components)
         remaining_slots = 25 - len(self.children)
         for i, item_name in enumerate(items[:min(remaining_slots, 5)]):
+            # Get custom emoji for item if available from event
+            item_emoji = self._get_item_emoji(item_name)
+            
             # Use index-based custom_id to avoid issues with special characters
-            button = Button(label=f"📦 {item_name}", style=discord.ButtonStyle.success, custom_id=f"item_{i}")
+            button = Button(
+                label=item_name,
+                style=discord.ButtonStyle.success,
+                custom_id=f"item_{i}",
+                emoji=item_emoji
+            )
             button.callback = self._create_item_callback(item_name)
             self.add_item(button)
+        
+        # Add NPC buttons (up to remaining slots)
+        remaining_slots = 25 - len(self.children)
+        for i, npc_name in enumerate(npcs[:min(remaining_slots, 5)]):
+            # Get custom emoji for NPC if available from event
+            npc_emoji = self._get_npc_emoji(npc_name)
+            
+            # Use index-based custom_id to avoid issues with special characters
+            button = Button(
+                label=npc_name,
+                style=discord.ButtonStyle.secondary,
+                custom_id=f"npc_{i}",
+                emoji=npc_emoji
+            )
+            button.callback = self._create_npc_callback(npc_name)
+            self.add_item(button)
+    
+    def _get_item_emoji(self, item_name: str):
+        """Get the emoji for an item button.
+        
+        Returns a custom emoji if available from item_images, otherwise uses default 📦.
+        The item_images can contain:
+        - Discord custom emoji in format <:name:id> or <a:name:id> for animated
+        - Unicode emoji characters
+        - Emoji name that can be looked up
+        """
+        if not self.event:
+            return "📦"
+        
+        # Get the image/emoji reference from the event
+        image_ref = self.event.get_item_image(item_name)
+        
+        return self._parse_emoji(image_ref, "📦")
+    
+    def _get_npc_emoji(self, npc_name: str):
+        """Get the emoji for an NPC button.
+        
+        Returns a custom emoji if available from npc_images, otherwise uses default 👤.
+        """
+        if not self.event:
+            return "👤"
+        
+        # Get the image/emoji reference from the event
+        image_ref = self.event.get_npc_image(npc_name)
+        
+        return self._parse_emoji(image_ref, "👤")
+    
+    def _parse_emoji(self, emoji_ref: str, default: str):
+        """Parse an emoji reference and return a usable emoji.
+        
+        Supports:
+        - Discord custom emoji in format <:name:id> or <a:name:id> for animated
+        - Unicode emoji characters
+        - Falls back to default if not recognized
+        """
+        if not emoji_ref:
+            return default
+        
+        # Check if it's a custom Discord emoji format <:name:id> or <a:name:id>
+        if emoji_ref.startswith('<') and emoji_ref.endswith('>'):
+            try:
+                # Format: <:name:id> or <a:name:id>
+                # For non-animated: <:name:id> strips to ':name:id', splits to ['', 'name', 'id']
+                # For animated: <a:name:id> strips to 'a:name:id', splits to ['a', 'name', 'id']
+                parts = emoji_ref.strip('<>').split(':')
+                if len(parts) == 3:
+                    # animated is True only if the first part is exactly 'a'
+                    # For non-animated, parts[0] is empty string, so this is False (correct)
+                    # For animated, parts[0] is 'a', so this is True (correct)
+                    animated = parts[0] == 'a'
+                    name = parts[1]
+                    emoji_id = int(parts[2])
+                    return discord.PartialEmoji(name=name, id=emoji_id, animated=animated)
+            except (ValueError, IndexError):
+                pass
+            except (ValueError, IndexError):
+                pass
+        
+        # Check if it looks like a Unicode emoji
+        # Unicode emojis are non-ASCII and are typically 1-10 characters
+        # (complex emojis with modifiers/ZWJ can be longer)
+        if not emoji_ref.isascii():
+            return emoji_ref
+        
+        # Default fallback emoji
+        return default
     
     def _create_exit_callback(self, exit_name: str):
         """Create a callback for exit button."""
@@ -43,6 +141,13 @@ class GameActionView(View):
             await interaction.response.send_message(f"Taking: {item_name}", ephemeral=True)
             self.llama_tale.call(f"take {item_name}")
         return callback
+    
+    def _create_npc_callback(self, npc_name: str):
+        """Create a callback for NPC button."""
+        async def callback(interaction: discord.Interaction):
+            await interaction.response.send_message(f"Talking to: {npc_name}", ephemeral=True)
+            self.llama_tale.call(f"talk {npc_name}")
+        return callback
 
 
 class DiscordBot(discord.Client):
@@ -56,6 +161,7 @@ class DiscordBot(discord.Client):
         self.last_image = None
         self.last_caption = None
         self.last_event = None
+        self.last_command = None  # Track the last command for context-aware image display
         self._setup_commands()
         
 
@@ -180,6 +286,7 @@ class DiscordBot(discord.Client):
             if not await self._check_channel(interaction):
                 return
             await interaction.response.send_message(f"Examining: {target}", ephemeral=True)
+            self.last_command = f"examine {target}"
             self.llama_tale.call(f"examine {target}")
         
         @self.tree.command(name="open", description="Open a door or container")
@@ -282,6 +389,7 @@ You can also type commands directly in the chat (e.g., "look", "go north", etc.)
                 await message.channel.send('Commands: start (start listening to LlamaTale), remind me (show last message), help (show this message)')
 
             prompt = message.content
+            self.last_command = prompt  # Track the command for context-aware image display
             response = self.llama_tale.call(prompt=prompt)
 
             if response:
@@ -300,9 +408,33 @@ You can also type commands directly in the chat (e.g., "look", "go north", etc.)
         self.last_event = event
 
     async def _output(self, server_message, channel: discord.GroupChannel, event=None):
+        # Detect if we're examining an item or NPC to show its thumbnail
+        thumbnail_path = None
+        if event and self.last_command and self.last_command.startswith('examine '):
+            examine_prefix = 'examine '
+            target = self.last_command[len(examine_prefix):].strip()  # Extract the target from "examine <target>"
+            
+            # Check if target is an item
+            if target in event.items:
+                image_name = event.get_item_image(target)
+                thumbnail_path = find_image(image_name, self.llama_tale.resources_path)
+            # Check if target is an NPC
+            elif target in event.npcs:
+                image_name = event.get_npc_image(target)
+                thumbnail_path = find_image(image_name, self.llama_tale.resources_path)
+        
         # Create an embed if we have structured event data with exits or items
-        if event and (event.exits or event.items):
+        if event and (event.exits or event.items or event.npcs):
             embed = discord.Embed(description=format_text(server_message), color=discord.Color.blue())
+            
+            # Add thumbnail if examining an item or NPC
+            if thumbnail_path:
+                if thumbnail_path.startswith('http'):
+                    embed.set_thumbnail(url=thumbnail_path)
+                else:
+                    # For local files, we need to handle them differently
+                    # We'll send the image as an attachment and reference it
+                    embed.set_thumbnail(url=f'attachment://{thumbnail_path.split("/")[-1]}')
             
             # Add exits field
             if event.exits:
@@ -320,9 +452,18 @@ You can also type commands directly in the chat (e.g., "look", "go north", etc.)
                 embed.add_field(name="👥 NPCs", value=npcs_text, inline=False)
             
             # Create view with buttons
-            view = GameActionView(self.llama_tale, event.exits, event.items)
+            view = GameActionView(self.llama_tale, event.exits, event.items, event.npcs, event)
             
-            await channel.send(embed=embed, view=view)
+            # Send with thumbnail file if needed
+            if thumbnail_path and not thumbnail_path.startswith('http'):
+                try:
+                    file = discord.File(thumbnail_path)
+                    await channel.send(file=file, embed=embed, view=view)
+                except Exception as e:
+                    print(f"Error sending thumbnail: {e}")
+                    await channel.send(embed=embed, view=view)
+            else:
+                await channel.send(embed=embed, view=view)
         else:
             # Fall back to regular text output
             response_lines = server_message.split('\n\n')
